@@ -20,7 +20,7 @@ int main() {
 
         vector<vector<pair<ll, ll>>> adj(n);
 
-        // Changed loop variable from 'i' to 'j' to avoid shadowing the outer loop's 'i'
+       
         for (ll j = 0; j < r; j++) {
             ll u, v, w;
             cin >> u >> v >> w;
@@ -30,7 +30,7 @@ int main() {
 
             adj[u].pb({v, w});
             adj[v].pb({u, w});
-            adj[u].pb({u, 2 * w});
+            adj[u].pb({u, 2 * w});  //go to neighbour and come back to the same node again
             adj[v].pb({v, 2 * w});
         }
 
@@ -49,25 +49,29 @@ int main() {
 
             if (w > ssp[u]) continue;
 
-            // Renamed 'it' to 'edge' to avoid confusion with the 'it' from pq.top()
+            
             for (auto edge : adj[u]) {
                 ll v = edge.first;
                 ll weight = edge.second;
 
-                if (sp[v] > weight + w) {
+                if (sp[v] > weight + w) { // shortest path check
                     ssp[v] = sp[v];
                     sp[v] = w + weight;
                     pq.push({ssp[v], v});
                     pq.push({w + weight, v});
                 } 
-                else if (sp[v] < weight + w && ssp[v] > weight + w) {
+                else if (sp[v] < weight + w && ssp[v] > weight + w) {   
+                   
+                    //****"(sp[v] < weight + w)"  we must have to check it  to ensure that the second shortest
+                    // path is strictly smaller than the shortest one.
+                    
                     ssp[v] = w + weight;
                     pq.push({w + weight, v});
                 }
             }
         }
 
-        // Used "\n" instead of endl for faster output
+     
         cout << "Case " << i + 1 << ": " << ssp[n - 1] << "\n";
     }
 
