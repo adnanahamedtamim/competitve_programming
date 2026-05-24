@@ -69,14 +69,10 @@ vector<ll> multiply(vector<ll>& a, vector<ll>& b) {
 
     vector<ll> res(n);
 
-    for (int i = 0; i < n; i++)
-        res[i] = (llround(fa[i].real()) > 0);
+      for (int i = 0; i < n; i++)
+        res[i] = llround(fa[i].real());
 
-    while (!res.empty() && res.back() == 0)
-        res.pop_back();
-
-    if ((int)res.size() > 1000001)
-        res.resize(1000001);
+   
 
     return res;
 }
