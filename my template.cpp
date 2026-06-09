@@ -29,6 +29,17 @@ typedef vector<ll> vll;
 typedef vector<int> vi;
 typedef vector<vector<ll>> vvll;
 typedef vector<vector<int>> vvi;
+/*======================
+       ordered set for finding kth element in O(logn)
+=======================*/
+using namespace __gnu_pbds;
+
+typedef tree<
+int,
+null_type,
+less<int>,
+rb_tree_tag,
+tree_order_statistics_node_update> ordered_set;
 
 /*======================
         CONSTANTS
