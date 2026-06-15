@@ -32,6 +32,7 @@ typedef vector<ll> vll;
 typedef vector<int> vi;
 typedef vector<vector<ll>> vvll;
 typedef vector<vector<int>> vvi;
+typedef pair<ll,ll> pll;
 /*======================
        ordered set for finding kth element in O(logn)
        usage :: find_by_order(pos),,, return the ref to pos'th element(0 based) in the set
@@ -40,11 +41,23 @@ typedef vector<vector<int>> vvi;
 using namespace __gnu_pbds;
 
 typedef tree<
-int,
+ll,         // change the type here
 null_type,
-less<int>,
+less<ll>,    // and here
 rb_tree_tag,
 tree_order_statistics_node_update> ordered_set;
+
+/*======================
+   ordered_multiset.. declaration :: ordered_multiset st;
+=======================*/
+
+typedef tree<
+    ll,
+    null_type,
+    less<ll>,
+    rb_tree_tag,
+    tree_order_statistics_node_update
+> ordered_multiset;
 
 /*======================
         CONSTANTS
