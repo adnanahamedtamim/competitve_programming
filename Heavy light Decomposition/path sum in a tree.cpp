@@ -3,17 +3,17 @@ using namespace std;
 
 using ll = long long;
 
-vector<int> parent_, depth_, heavy, head, pos, sze;
+vector<ll> parent_, depth_, heavy, head, pos, sze;
 vector<ll> val;
-int curPos = 0;
+ll curPos = 0;
 
 struct Fenwick {
-    int n;
+    ll n;
     vector<ll> bit;
 
-    Fenwick(int n) : n(n), bit(n + 1, 0) {}
+    Fenwick(ll n) : n(n), bit(n + 1, 0) {}
 
-    void add(int idx, ll delta) {
+    void add(ll idx, ll delta) {
         idx++;
         while (idx <= n) {
             bit[idx] += delta;
@@ -21,7 +21,7 @@ struct Fenwick {
         }
     }
 
-    ll sum(int idx) {
+    ll sum(ll idx) {
         idx++;
         ll res = 0;
 
@@ -33,16 +33,16 @@ struct Fenwick {
         return res;
     }
 
-    ll rangeSum(int l, int r) {
+    ll rangeSum(ll l, ll r) {
         if (l > r) return 0;
         return sum(r) - (l ? sum(l - 1) : 0);
     }
 };
 
-void dfs(int u, vector<vector<int>> &adj) {
+void dfs(ll u, vector<vector<ll>> &adj) {
     sze[u] = 1;
 
-    for (int v : adj[u]) {
+    for (ll v : adj[u]) {
         if (v == parent_[u]) continue;
 
         parent_[v] = u;
@@ -57,20 +57,20 @@ void dfs(int u, vector<vector<int>> &adj) {
     }
 }
 
-void dfs_hld(int u, int h, vector<vector<int>> &adj) {
+void dfs_hld(ll u, ll h, vector<vector<ll>> &adj) {
     head[u] = h;
     pos[u] = curPos++;
 
     if (heavy[u] != -1)
         dfs_hld(heavy[u], h, adj);
 
-    for (int v : adj[u]) {
+    for (ll v : adj[u]) {
         if (v == parent_[u] || v == heavy[u]) continue;
         dfs_hld(v, v, adj);
     }
 }
 
-ll queryPath(int a, int b, Fenwick &fw) {
+ll queryPath(ll a, ll b, Fenwick &fw) {
     ll ans = 0;
 
     while (head[a] != head[b]) {
@@ -94,18 +94,18 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
 
-    int n, q;
+    ll n, q;
     cin >> n >> q;
 
     val.resize(n);
 
-    for (int i = 0; i < n; i++)
+    for (ll i = 0; i < n; i++)
         cin >> val[i];
 
-    vector<vector<int>> adj(n);
+    vector<vector<ll>> adj(n);
 
-    for (int i = 0; i < n - 1; i++) {
-        int a, b;
+    for (ll i = 0; i < n - 1; i++) {
+        ll a, b;
         cin >> a >> b;
         --a;
         --b;
@@ -126,17 +126,16 @@ int main() {
 
     Fenwick fw(n);
 
-    for (int i = 0; i < n; i++) {
+    for (ll i = 0; i < n; i++) {
         fw.add(pos[i], val[i]);
     }
 
     while (q--) {
-        int type;
+        ll type;
         cin >> type;
 
         if (type == 1) {
-            int s;
-            ll x;
+            ll s, x;
 
             cin >> s >> x;
             --s;
@@ -147,7 +146,7 @@ int main() {
             fw.add(pos[s], delta);
         }
         else {
-            int a, b;
+            ll a, b;
             cin >> a >> b;
 
             --a;
