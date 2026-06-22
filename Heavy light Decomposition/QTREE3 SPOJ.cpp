@@ -95,7 +95,7 @@ ll queryPath(ll a, ll b, Fenwick &fw) {
     ll l=pos[head[ansnode]],r=pos[ansnode];
     
     ll ans=0;
-    while(l<=r){
+    while(l<=r){    // as the nodes of the same chain are sorteda accroding to theire depth in the pos vector, we can use binary search
           ll mid=(l+r)/2;
           ll sum=fw.rangeSum(l,mid);
           if(sum>0){
