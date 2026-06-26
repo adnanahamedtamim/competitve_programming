@@ -291,6 +291,35 @@ ld norm(vec a){ return sqrt(dot(a,a)); }
 mt19937_64 rng(
     chrono::steady_clock::now().time_since_epoch().count()
 );
+
+/*======================
+        Print __int128
+=======================*/
+
+void printInt128(__int128 x) {
+    if (x == 0) {
+        std::cout << 0;
+        return;
+    }
+
+    bool neg = false;
+    if (x < 0) {
+        neg = true;
+        x = -x;
+    }
+
+    std::string s;
+    while (x > 0) {
+        s += (x % 10) + '0';
+        x /= 10;
+    }
+
+    if (neg)
+        s += '-';
+
+    std::reverse(s.begin(), s.end());
+    std::cout << s;
+}
  
 /*======================
     string
