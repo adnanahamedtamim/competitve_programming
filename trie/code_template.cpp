@@ -1,152 +1,187 @@
 #include <bits/stdc++.h>
-#include <unordered_map>
-#include <chrono>
 using namespace std;
 
-typedef long long ll;
-typedef long double ld;
+struct TrieNode {
+    TrieNode *child[26];
 
-#define pb push_back
-#define all(x) x.begin(), x.end()
-#define endl '\n'
-#define YES cout << "YES" << endl
-#define NO cout << "NO" << endl
-#define Yes cout << "Yes" << endl
-#define No cout << "No" << endl
+    int prefixCount;   // words passing through this node
+    int endCount;      // words ending here
+    bool isLeaf;
 
-#define isSet(x, i) ((x >> i) & 1)
-#define setbit(x, i) (x | (1LL << i))
-#define resetbit(x, i) (x & (~(1LL << i)))
-#define toggleBit(x, i) ((x) ^ (1LL << (i)))
-#define clz(x) __builtin_clzll(x)
-#define ctz(x) __builtin_ctzll(x)
-#define csb(x) __builtin_popcountll(x)
-#define msb(x) (ll)((x) ? (63 - __builtin_clzll((ll)(x))) : -1)
-#define lsb(x) (ll)((x) ? (__builtin_ctzll((ll)(x))) : -1)
-typedef long long ll;
-typedef vector<ll> vll;
-typedef vector<int> vi;
-typedef vector<vector<ll>> vvll;
-typedef vector<vector<int>> vvi;
+    TrieNode() {
+        prefixCount = 0;
+        endCount = 0;
+        isLeaf = false;
 
-// TRIE//
-// assuming all the input strings are in small letters
-
-struct trie_node
-{
-    int pc; // prefix count
-    trie_node *child[26];
-    bool isend; // word ends here or not
-
-    trie_node()
-    {
-        pc = 0;
-        isend = false;
-        for (ll i = 0; i < 26; i++)
-        {
-            child[i] = NULL;
-        }
+        for(int i = 0; i < 26; i++)
+            child[i] = nullptr;
     }
 };
 
-trie_node *root = new trie_node();
+class Trie {
 
-void insert(string s)
-{
+    TrieNode *root;
 
-    trie_node *curr = root;
-    for (auto c : s)
-    {
-        ll index = c - 'a';
-        if (curr->child[index] == NULL)
-        {
-            curr->child[index] = new trie_node();
+public:
+
+    Trie() {
+        root = new TrieNode();
+    }
+
+    void insert(const string &s) {
+
+        TrieNode *cur = root;
+
+        for(char c : s) {
+
+            int id = c - 'a';
+
+            if(cur->child[id] == nullptr)
+                cur->child[id] = new TrieNode();
+
+            cur = cur->child[id];
+            cur->prefixCount++;
         }
-        curr = curr->child[index];
-        curr->pc++;
+
+        cur->endCount++;
+        cur->isLeaf = true;
     }
-    curr->isend = true;
-}
 
-bool search(string s)
-{
-    trie_node *curr = root;
+    bool search(const string &s) {
 
-    for (auto c : s)
-    {
-        ll index = c - 'a';
+        TrieNode *cur = root;
 
-        if (curr->child[index] == NULL || curr->child[index]->pc == 0)
-        {
-            return false;
+        for(char c : s) {
+
+            int id = c - 'a';
+
+            if(cur->child[id] == nullptr)
+                return false;
+
+            cur = cur->child[id];
         }
-        curr = curr->child[index];
+
+        return cur->endCount > 0;
     }
-    return curr->isend;
-}
 
-void removeword(string s)
-{
-    if (!search(s))
-        return;
+    bool startsWith(const string &s) {
 
-    trie_node *curr = root;
-    for (auto c : s)
-    {
-        ll index = c - 'a';
-        curr = curr->child[index];
-        curr->pc--;
-    }
-    curr->isend = false;
-    return;
-}
+        TrieNode *cur = root;
 
-// count the number string of which s is a prefix
+        for(char c : s) {
 
-ll count_prefix(string s)
-{
-    trie_node *curr = root;
+            int id = c - 'a';
 
-    for (auto c : s)
-    {
-        ll index = c - 'a';
+            if(cur->child[id] == nullptr)
+                return false;
 
-        if (curr->child[index] == NULL || curr->child[index]->pc == 0)
-        {
-            return 0;
+            cur = cur->child[id];
         }
-        curr = curr->child[index];
+
+        return true;
     }
 
-    return curr->pc;
-}
+    int countWordsEqualTo(const string &s) {
 
-int main()
-{
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+        TrieNode *cur = root;
 
-    insert("adnan");
-    insert("tamim");
-    insert("adu");
+        for(char c : s) {
 
-    if (search("adnan"))
-    {
-        cout << "paisi" << endl;
+            int id = c - 'a';
+
+            if(cur->child[id] == nullptr)
+                return 0;
+
+            cur = cur->child[id];
+        }
+
+        return cur->endCount;
     }
 
-    removeword("adnan");
+    int countWordsStartingWith(const string &s) {
 
-    if (!search("adnan"))
-    {
-        cout << "pai nai" << endl;
+        TrieNode *cur = root;
+
+        for(char c : s) {
+
+            int id = c - 'a';
+
+            if(cur->child[id] == nullptr)
+                return 0;
+
+            cur = cur->child[id];
+        }
+
+        return cur->prefixCount;
     }
 
-    insert("adnan");
+    void erase(const string &s) {
 
-    cout << count_prefix("addd") << endl;
-    cout << count_prefix("tam") << endl;
-    cout << count_prefix("ad") << endl;
+        if(!search(s))
+            return;
+
+        TrieNode *cur = root;
+
+        for(char c : s) {
+
+            int id = c - 'a';
+
+            cur = cur->child[id];
+            cur->prefixCount--;
+        }
+
+        cur->endCount--;
+
+        if(cur->endCount == 0)
+            cur->isLeaf = false;
+    }
+};
+
+int main() {
+
+    Trie trie;
+
+    // Insert words
+    trie.insert("apple");
+    trie.insert("app");
+    trie.insert("apple");
+    trie.insert("ape");
+    trie.insert("bat");
+    trie.insert("ball");
+
+    cout << boolalpha; //a C++ stream manipulator that tells cout to print boolean values as true and false instead of 1 and 0.
+
+    cout << "Search examples\n";
+    cout << "apple : " << trie.search("apple") << "\n";
+    cout << "app   : " << trie.search("app") << "\n";
+    cout << "ap    : " << trie.search("ap") << "\n";
+    cout << "cat   : " << trie.search("cat") << "\n\n";
+
+    cout << "Prefix examples\n";
+    cout << "ap : " << trie.startsWith("ap") << "\n";
+    cout << "ba : " << trie.startsWith("ba") << "\n";
+    cout << "ca : " << trie.startsWith("ca") << "\n\n";
+
+    cout << "Word Counts\n";
+    cout << "apple : " << trie.countWordsEqualTo("apple") << "\n";
+    cout << "app   : " << trie.countWordsEqualTo("app") << "\n";
+    cout << "ape   : " << trie.countWordsEqualTo("ape") << "\n";
+    cout << "cat   : " << trie.countWordsEqualTo("cat") << "\n\n";
+
+    cout << "Prefix Counts\n";
+    cout << "ap : " << trie.countWordsStartingWith("ap") << "\n";
+    cout << "app: " << trie.countWordsStartingWith("app") << "\n";
+    cout << "ba : " << trie.countWordsStartingWith("ba") << "\n";
+    cout << "b  : " << trie.countWordsStartingWith("b") << "\n\n";
+
+    cout << "Erase one occurrence of apple\n";
+    trie.erase("apple");
+
+    cout << "apple count = "
+         << trie.countWordsEqualTo("apple") << "\n";
+
+    cout << "prefix app count = "
+         << trie.countWordsStartingWith("app") << "\n";
 
     return 0;
 }
