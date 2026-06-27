@@ -3,6 +3,8 @@ using namespace std;
 
 typedef long long ll;
 
+//Z[i]=length of the longest substring starting at i that matches the prefix of s
+
 vector<ll> z_function(string s) {
     ll n = s.size();
     vector<ll> z(n);
