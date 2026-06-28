@@ -5,7 +5,7 @@ using ull = unsigned long long;
 using u128 = __uint128_t;
 
 // (a * b) % mod without overflow
-// 7*log2(n)
+// 0(7*log2(n))  almost constant
 
 ull mod_mul(ull a, ull b, ull mod) {
     return (u128)a * b % mod;
