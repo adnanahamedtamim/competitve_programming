@@ -3,7 +3,7 @@ using namespace std;
 
 using ll = long long;
 
-ll booth(string s) {  // booth's algorithm
+ll booth(string s) {  // booth's algorithm 0(n)
 // returns the starting index p of the lexicographically smallest substring of a string s 
     s += s;
     ll n = s.size() / 2;
