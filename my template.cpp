@@ -27,6 +27,7 @@ typedef long double ld;
 #define csb(x) __builtin_popcountll(x)
 #define msb(x) (ll)((x) ? (63 - __builtin_clzll((ll)(x))) : -1)
 #define lsb(x) (ll)((x) ? (__builtin_ctzll((ll)(x))) : -1)
+#define all(v) v.begin(),v.end()
 typedef long long ll;
 typedef vector<ll> vll;
 typedef vector<int> vi;
