@@ -1,98 +1,68 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-struct LiChaoTree {
-    static const long long INF = 1LL << 60; // Represents Infinity
-
+struct SimpleCHT {
     struct Line {
         long long m, c;
-        long long eval(long long x) const { return m * x + c; }
+        // Plug x into y = m*x + c
+        long long eval(long long x) const { 
+            return m * x + c; 
+        }
     };
 
-    struct Node {
-        Line line;
-        int left_child = -1;
-        int right_child = -1;
-    };
+    vector<Line> hull;
 
-    vector<Node> tree;
-    long long MIN_X, MAX_X;
-
-    // Initialize with the minimum and maximum possible x-coordinates in your problem
-    LiChaoTree(long long min_x = -2e9, long long max_x = 2e9) {
-        MIN_X = min_x;
-        MAX_X = max_x;
-        // Create root node with a "dummy" line that gives -INFINITY everywhere
-        tree.push_back({{0, -INF}, -1, -1});
+    // Helper: Checks if line l2 is "buried" between l1 and l3
+    // Using simple algebra (cross-multiplication) to avoid decimals
+    bool is_bad(const Line& l1, const Line& l2, const Line& l3) {
+        return (__int128)(l3.c - l1.c) * (l1.m - l2.m) <= 
+               (__int128)(l2.c - l1.c) * (l1.m - l3.m);
     }
 
-    // Public function to add any random line y = mx + c
+    // Add a new line y = m*x + c
+    // RULE: Slopes 'm' must be added in INCREASING order!
     void add(long long m, long long c) {
-        insert({m, c}, 0, MIN_X, MAX_X);
+        Line new_line = {m, c};
+
+        // While the line at the very back is useless, throw it away
+        while (hull.size() >= 2 && is_bad(hull[hull.size() - 2], hull.back(), new_line)) {
+            hull.pop_back();
+        }
+
+        // Put the new line at the back
+        hull.push_back(new_line);
     }
 
-    // Public function to query any random point x
+    // Find the MAXIMUM value at point x in O(log N) time
     long long query(long long x) {
-        return get_max(x, 0, MIN_X, MAX_X);
-    }
+        int low = 0;
+        int high = hull.size() - 1;
 
-private:
-    void insert(Line new_line, int node, long long l, long long r) {
-        long long mid = l + (r - l) / 2;
+        // Normal Binary Search to find the highest peak
+        while (low < high) {
+            int mid = low + (high - low) / 2;
 
-        // Step 1: If the new line is better at the midpoint, swap it!
-        // The better line stays here, and we push the old line down.
-        bool better_at_mid = new_line.eval(mid) > tree[node].line.eval(mid);
-        if (better_at_mid) {
-            swap(tree[node].line, new_line);
-        }
-
-        // Base case: If we reached a single point, we are done
-        if (l == r) return;
-
-        // Step 2: Where could the "loser" (new_line) still be better?
-        // Check if it's better at the left boundary 'l'
-        bool better_at_left = new_line.eval(l) > tree[node].line.eval(l);
-
-        if (better_at_left) {
-            // Push to left child
-            if (tree[node].left_child == -1) {
-                tree[node].left_child = tree.size();
-                tree.push_back({{0, -INF}, -1, -1});
+            // If moving to the right gives a bigger value, the peak is to the right!
+            if (hull[mid].eval(x) <= hull[mid + 1].eval(x)) {
+                low = mid + 1;
+            } 
+            // Otherwise, the peak is at 'mid' or to the left!
+            else {
+                high = mid;
             }
-            insert(new_line, tree[node].left_child, l, mid);
-        } else {
-            // Otherwise, if it has any chance, it must be on the right half
-            if (tree[node].right_child == -1) {
-                tree[node].right_child = tree.size();
-                tree.push_back({{0, -INF}, -1, -1});
-            }
-            insert(new_line, tree[node].right_child, mid + 1, r);
         }
-    }
 
-    long long get_max(long long x, int node, long long l, long long r) {
-        if (node == -1) return -INF; // Reached an empty branch
-
-        // The answer could be the line stored in THIS node...
-        long long res = tree[node].line.eval(x);
-        if (l == r) return res;
-
-        long long mid = l + (r - l) / 2;
-
-        // ...OR a better line stored deeper down the tree in the child node!
-        if (x <= mid) {
-            return max(res, get_max(x, tree[node].left_child, l, mid));
-        } else {
-            return max(res, get_max(x, tree[node].right_child, mid + 1, r));
-        }
+        // 'low' now points directly to the best line
+        return hull[low].eval(x);
     }
 };
 
 int main(){
 
-    LiChaoTree cht;
-    cht.add(-m, -c);               // Insert with minus signs
-    long long ans = -cht.query(x); // Put a minus sign on the result
+        SimpleCHT cht;
+        
+        // To find MINIMUM:
+        cht.add(-m, -c);               // 1. Insert with minus signs
+        long long ans = -cht.query(x); // 2. Put a minus sign on the result!
 
 }
