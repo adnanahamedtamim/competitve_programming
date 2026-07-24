@@ -60,9 +60,27 @@ struct SimpleCHT {
 int main(){
 
         SimpleCHT cht;
+      int m=1,c=1,x=1;
         
-        // To find MINIMUM:
-        cht.add(-m, -c);               // 1. Insert with minus signs
-        long long ans = -cht.query(x); // 2. Put a minus sign on the result!
+        // CASE 4: MINIMUM with INCREASING SLOPES
+        cht.add(m, -c);               // 1. Keep 'm' positive so slopes stay INCREASING!
+        long long ans = -cht.query(-x); // 2. Negate 'x' inside, and negate the result outside!
 
 }
+
+//DISCALIMER 
+/*
+
+Rule 1: FIX THE SLOPES
+Your template strictly requires INCREASING slopes.
+-> If slopes are already Increasing: Pass 'm'
+-> If slopes are Decreasing:         You MUST pass '-m' to make them increasing!
+
+Rule 2: BALANCE THE ALGEBRA
+Look at what you did to 'm' and balance the equation:
+-> For MAXIMUM: Whatever sign you gave 'm', give the exact same sign to 'x' in query().
+(e.g., if you passed '-m', you must query '-x'). Intercept is always '+c'.
+-> For MINIMUM: You must ALWAYS negate the final result (-query) and the intercept (-c).
+Then, just give 'x' the OPPOSITE sign of whatever you passed for 'm' so they multiply to positive m*x!
+
+*/
