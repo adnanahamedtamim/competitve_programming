@@ -1,4 +1,3 @@
-```cpp
 /*
     Problem: Minimum Height Trees / Center of a Tree
 
@@ -100,4 +99,3 @@ int main() {
 
     return 0;
 }
-```
