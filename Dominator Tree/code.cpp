@@ -20,11 +20,11 @@ struct DominatorTree {
     vvi adj, rev_adj, bucket, dom_tree;
     vi dfn, rev_dfn, sdom, idom, par, dsu, label;
 
-    // 1-based indexing for N nodes
-    DominatorTree(int n) : n(n), timer(0), 
-        adj(n + 1), rev_adj(n + 1), bucket(n + 1), dom_tree(n + 1),
-        dfn(n + 1, 0), rev_dfn(n + 1, 0), sdom(n + 1, 0), 
-        idom(n + 1, 0), par(n + 1, 0), dsu(n + 1, 0), label(n + 1, 0) {}
+    // 0-based indexing for N nodes
+    DominatorTree(int n) : n(n), timer(-1), 
+        adj(n), rev_adj(n), bucket(n), dom_tree(n),
+        dfn(n, -1), rev_dfn(n, -1), sdom(n, -1), 
+        idom(n, -1), par(n, -1), dsu(n, -1), label(n, -1) {}
 
     void add_edge(int u, int v) {
         adj[u].push_back(v);
@@ -37,24 +37,25 @@ struct DominatorTree {
         sdom[u] = label[u] = dsu[u] = u;
         
         for (int v : adj[u]) {
-            if (!dfn[v]) {
+            if (dfn[v] == -1) {
                 dfs0(v);
                 par[v] = u;
             }
         }
     }
 
-    // DSU with path compression to find the node with the minimum sdom
-    int find(int u, int x = 0) {
-        if (u == dsu[u]) return x ? -1 : u;
-        int p = find(dsu[u], u + 1);
+    // DSU with path compression
+    int find(int u, bool is_recursive = false) {
+        if (u == dsu[u]) return is_recursive ? -1 : u;
+        
+        int p = find(dsu[u], true);
         if (p < 0) return u;
         
         if (dfn[sdom[label[dsu[u]]]] < dfn[sdom[label[u]]]) {
             label[u] = label[dsu[u]];
         }
         dsu[u] = p;
-        return x ? p : label[u];
+        return is_recursive ? p : label[u];
     }
 
     // Builds the idom array and the dom_tree adjacency list
@@ -62,10 +63,10 @@ struct DominatorTree {
         dfs0(root);
         
         // Process in reverse DFS order (Bottom-Up)
-        for (int i = timer; i >= 2; i--) {
+        for (int i = timer; i >= 1; i--) {
             int u = rev_dfn[i];
             for (int v : rev_adj[u]) {
-                if (dfn[v]) {
+                if (dfn[v] != -1) {
                     find(v);
                     if (dfn[sdom[label[v]]] < dfn[sdom[u]]) {
                         sdom[u] = sdom[label[v]];
@@ -85,7 +86,7 @@ struct DominatorTree {
         }
 
         // Process in forward DFS order (Top-Down)
-        for (int i = 2; i <= timer; i++) {
+        for (int i = 1; i <= timer; i++) {
             int u = rev_dfn[i];
             if (idom[u] != sdom[u]) idom[u] = idom[idom[u]];
             
@@ -105,11 +106,13 @@ void solve() {
     for (int i = 0; i < m; i++) {
         int u, v;
         cin >> u >> v;
+        u--;
+        v--;
         dt.add_edge(u, v);
     }
 
     // Capital is city 1. Build the tree!
-    dt.build(1);
+    dt.build(0);
 
     // Now dt.dom_tree is a directed tree where idom(V) points to V.
     // Let's find the subtree sizes to answer the "Critical Checkpoints" problem.
@@ -125,10 +128,10 @@ void solve() {
     };
 
     // Calculate sizes starting from the capital (Root = 1)
-    dfs_tree(dfs_tree, 1);
+    dfs_tree(dfs_tree, 0);
 
     // Output how many cities become isolated if city i is destroyed
-    for (int i = 1; i <= n; i++) {
+    for (int i = 0; i < n; i++) {
         if (dt.dfn[i] == 0) {
             cout << "0 "; // City was already unreachable from the start
         } else {
