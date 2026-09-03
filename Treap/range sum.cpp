@@ -1,73 +1,97 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
-
 struct Node {
-    int val, prio, sz;
-    long long sum;
-    Node *l, *r;
-    Node(int v) : val(v), prio((int)rng()), sz(1), sum(v), l(nullptr), r(nullptr) {}
+    int value;        // the actual array element
+    int priority;      // random number, keeps the tree balanced
+    int size;          // how many nodes are in this subtree
+    long long sum;     // sum of all values in this subtree
+    Node *left, *right;
+
+    Node(int v) {
+        value = v;
+        priority = rand();
+        size = 1;
+        sum = v;
+        left = right = nullptr;
+    }
 };
 
-int sz(Node* t)        { return t ? t->sz : 0; }
-long long sum(Node* t) { return t ? t->sum : 0; }
+// treat a missing node (nullptr) as having size 0 and sum 0
+int getSize(Node* t) { return t ? t->size : 0; }
+long long getSum(Node* t) { return t ? t->sum : 0; }
 
-void pull(Node* t) {
+// after changing a node's children, recompute its size and sum
+void update(Node* t) {
     if (!t) return;
-    t->sz  = 1 + sz(t->l) + sz(t->r);
-    t->sum = t->val + sum(t->l) + sum(t->r);
+    t->size = 1 + getSize(t->left) + getSize(t->right);
+    t->sum  = t->value + getSum(t->left) + getSum(t->right);
 }
 
-// splits t into L (first k elements) and R (the rest), in-place via reference
-void split(Node* t, int k, Node*& L, Node*& R) {
-    if (!t) { L = R = nullptr; return; }
-    if (sz(t->l) < k) {
-        split(t->r, k - sz(t->l) - 1, t->r, R);
-        L = t;
+// cut t into (first k elements, the rest)
+pair<Node*, Node*> split(Node* t, int k) {
+    if (!t) return {nullptr, nullptr};
+
+    if (getSize(t->left) < k) {
+        // t itself is among the first k, so recurse into its right side
+        auto piece = split(t->right, k - getSize(t->left) - 1);
+        t->right = piece.first;
+        update(t);
+        return {t, piece.second};
     } else {
-        split(t->l, k, L, t->l);
-        R = t;
+        // t belongs after the cut, so recurse into its left side
+        auto piece = split(t->left, k);
+        t->left = piece.second;
+        update(t);
+        return {piece.first, t};
     }
-    pull(t);
 }
 
-Node* merge(Node* L, Node* R) {
-    if (!L) return R;
-    if (!R) return L;
-    if (L->prio > R->prio) { L->r = merge(L->r, R); pull(L); return L; }
-    else                   { R->l = merge(L, R->l); pull(R); return R; }
+// glue two trees together (every element of a comes before every element of b)
+Node* merge(Node* a, Node* b) {
+    if (!a) return b;
+    if (!b) return a;
+
+    if (a->priority > b->priority) {
+        a->right = merge(a->right, b);
+        update(a);
+        return a;
+    } else {
+        b->left = merge(a, b->left);
+        update(b);
+        return b;
+    }
 }
 
-Node* build(const vector<int>& a) {
+// build the tree by adding array elements one at a time, left to right
+Node* build(vector<int>& arr) {
     Node* root = nullptr;
-    for (int x : a) root = merge(root, new Node(x));   // O(N log N) expected
+    for (int x : arr) root = merge(root, new Node(x));
     return root;
 }
 
-// 1-indexed, inclusive: sum of a[l..r]
-long long rangeSum(Node*& root, int l, int r) {
-    Node *A, *temp, *B, *C;
-    split(root, l - 1, A, temp);
-    split(temp, r - l + 1, B, C);
-    long long ans = sum(B);
-    root = merge(merge(A, B), C);
-    return ans;
+// sum of arr[l..r], 1-indexed, inclusive
+long long querySum(Node*& root, int l, int r) {
+    auto part1 = split(root, l - 1);        // part1.first = arr[1..l-1]
+    auto part2 = split(part1.second, r - l + 1); // part2.first = arr[l..r]
+
+    long long answer = getSum(part2.first);
+
+    root = merge(merge(part1.first, part2.first), part2.second); // stitch it back
+
+    return answer;
 }
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
     int n; cin >> n;
-    vector<int> a(n);
-    for (auto& x : a) cin >> x;
+    vector<int> arr(n);
+    for (int& x : arr) cin >> x;
 
-    Node* root = build(a);
+    Node* root = build(arr);
 
     int q; cin >> q;
     while (q--) {
         int l, r; cin >> l >> r;
-        cout << rangeSum(root, l, r) << "\n";
+        cout << querySum(root, l, r) << "\n";
     }
 }
