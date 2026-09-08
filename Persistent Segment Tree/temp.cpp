@@ -1,69 +1,71 @@
 
-include <bits/stdc++.h>
+#pragma GCC optimize("O3")
+#include <iostream>
+#include <vector>
+
 using namespace std;
 
-typedef long long ll;
+// Maximum nodes needed: roughly N (for build) + Q * log2(N) (for updates)
+const int MAX_NODES = 1e7; 
 
 struct Node {
-    ll sum;
-    Node *left, *right;
+    long long sum;
+    int lc, rc; // Integer indices instead of pointers
+} tree[MAX_NODES];
 
-    Node(ll val = 0) {
-        sum = val;
-        left = right = nullptr;
-    }
+int node_cnt = 0; // Tracks the next available node index
 
-    Node(Node* l, Node* r) {
-        left = l;
-        right = r;
-        sum = 0;
-        if (l) sum += l->sum;
-        if (r) sum += r->sum;
-    }
-};
-
-Node* build(int l, int r, vector<ll>& a) {
-    if (l == r)
-        return new Node(a[l]);
-
-    int mid = (l + r) >> 1;
-
-    Node* left = build(l, mid, a);
-    Node* right = build(mid + 1, r, a);
-
-    return new Node(left, right);
+// Function to create a new node and return its index
+int new_node(long long sum = 0, int lc = 0, int rc = 0) {
+    int id = ++node_cnt;
+    tree[id].sum = sum;
+    tree[id].lc = lc;
+    tree[id].rc = rc;
+    return id;
 }
 
-Node* update(Node* node, int l, int r, int pos, ll val) {
-    if (l == r)
-        return new Node(val);
+// Build the initial tree
+int build(int l, int r, const vector<long long>& a) {
+    if (l == r) {
+        return new_node(a[l], 0, 0);
+    }
+    int mid = l + (r - l) / 2;
+    int left_child = build(l, mid, a);
+    int right_child = build(mid + 1, r, a);
+    
+    return new_node(tree[left_child].sum + tree[right_child].sum, left_child, right_child);
+}
 
-    int mid = (l + r) >> 1;
-
+// Point update: creates new nodes along the updated path
+int update(int prev_root, int l, int r, int pos, long long val) {
+    if (l == r) {
+        return new_node(val, 0, 0); // Create a new leaf
+    }
+    int mid = l + (r - l) / 2;
+    
+    int left_child = tree[prev_root].lc;
+    int right_child = tree[prev_root].rc;
+    
     if (pos <= mid) {
-        return new Node(
-            update(node->left, l, mid, pos, val),
-            node->right
-        );
+        left_child = update(tree[prev_root].lc, l, mid, pos, val);
+    } else {
+        right_child = update(tree[prev_root].rc, mid + 1, r, pos, val);
     }
-
-    return new Node(
-        node->left,
-        update(node->right, mid + 1, r, pos, val)
-    );
+    
+    return new_node(tree[left_child].sum + tree[right_child].sum, left_child, right_child);
 }
 
-ll query(Node* node, int l, int r, int ql, int qr) {
-    if (r < ql || l > qr)
-        return 0;
-
-    if (ql <= l && r <= qr)
-        return node->sum;
-
-    int mid = (l + r) >> 1;
-
-    return query(node->left, l, mid, ql, qr) +
-           query(node->right, mid + 1, r, ql, qr);
+// Range sum query
+long long query(int root, int l, int r, int ql, int qr) {
+    if (r < ql || l > qr || root == 0) {
+        return 0; // Out of bounds or empty node
+    }
+    if (ql <= l && r <= qr) {
+        return tree[root].sum; // Fully covered
+    }
+    int mid = l + (r - l) / 2;
+    return query(tree[root].lc, l, mid, ql, qr) + 
+           query(tree[root].rc, mid + 1, r, ql, qr);
 }
 
 int main() {
@@ -71,52 +73,39 @@ int main() {
     cin.tie(nullptr);
 
     int n, q;
-    cin >> n >> q;
+    if (!(cin >> n >> q)) return 0;
 
-    vector<ll> a(n);
+    vector<long long> a(n);
+    for (int i = 0; i < n; i++) cin >> a[i];
 
-    for (int i = 0; i < n; i++)
-        cin >> a[i];
-
-    vector<Node*> roots;
-
-    roots.push_back(build(0, n - 1, a));
+    vector<int> roots;
+    roots.push_back(build(0, n - 1, a)); // Version 0
 
     while (q--) {
         int type;
         cin >> type;
 
-        if (type == 1) {
+        if (type == 1) { // Update
             int k, pos;
-            ll x;
-
+            long long x;
             cin >> k >> pos >> x;
-
-            k--;
-            pos--;
-
+            k--; pos--;
+            // Overwrite the specific version's root with the newly generated root
             roots[k] = update(roots[k], 0, n - 1, pos, x);
         }
-        else if (type == 2) {
+        else if (type == 2) { // Query
             int k, l, r;
-
             cin >> k >> l >> r;
-
-            k--;
-            l--;
-            r--;
-
+            k--; l--; r--;
             cout << query(roots[k], 0, n - 1, l, r) << '\n';
         }
-        else {
+        else if (type == 3) { // Copy version
             int k;
             cin >> k;
-
             k--;
-
+            // Just duplicate the root index to create a new version instantly
             roots.push_back(roots[k]);
         }
     }
-
     return 0;
 }
