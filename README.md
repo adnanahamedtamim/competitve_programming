@@ -1,2 +1,2 @@
 # competitve_programming
-codes for cp
+My competitive programming journey — solutions, algorithms, data structures, and problem-solving techniques from Codeforces, CSES, and other contests.
