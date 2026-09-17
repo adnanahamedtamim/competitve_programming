@@ -185,54 +185,41 @@ ll lcmwithoutmod(ll a,ll b){
 //     SIEVE + FACTORS
 // =======================*/
 
-// vector<ll> primes(MAXSIEVE+2,true);
-// vector<ll> plist;
 
-// void build_seive(){
-//     primes[0]=primes[1]=false;
+const int N = 1e6 + 5;
 
-//     for(ll i=2;i<=MAXSIEVE;i++){
-//           if(primes[i]==false)continue;
-//           for(ll j=2*i;j<=MAXSIEVE;j+=i){
-//               primes[j]=false;
-//           }
-//     }
+vector<int> spf(N);
 
-//     for(ll i=2;i<=MAXSIEVE;i++){
-//           if(primes[i]){
-//              plist.pb(i);
-//           }
-//     }
-// }
+void build_spf() {
+    for (int i = 1; i < N; i++) spf[i] = i;
 
-// vector<pair<ll,ll>> prime_factorization(ll x){
-//     vector<pair<ll,ll>> factors;
-//     while(x>1){
-//         ll prime = spf[x];
-//         ll cnt = 0;
-//         while(x%prime==0){
-//             x/=prime;
-//             cnt++;
-//         }
-//         factors.pb({prime,cnt});
-//     }
-//     return factors;
-// }
+    for (int i = 2; i * i < N; i++) {
+        if (spf[i] == i) {
+            for (int j = i * i; j < N; j += i) {
+                if (spf[j] == j)
+                    spf[j] = i;
+            }
+        }
+    }
+}
 
+vector<pair<int,int>> factorize(int x) {
+    vector<pair<int,int>> res;
 
-// vector<ll> getalldivisors_sorted(ll n){
-//    vector<ll> dib;
-//    for(ll i=1;i*i<=n;i++){
-//        if((n%i==0)){
-//             dib.pb(i);
-//             if(i*i!=n){
-//                 dib.pb(n/i);
-//             }
-//        }
-//    }
-//   sort(dib.begin(),dib.end());
-//   return dib;
-// }
+    while (x > 1) {
+        int p = spf[x];
+        int cnt = 0;
+
+        while (x % p == 0) {
+            x /= p;
+            cnt++;
+        }
+
+        res.push_back({p, cnt});
+    }
+
+    return res;
+}
 
 // /*======================
 //         INPUT
